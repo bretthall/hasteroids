@@ -1,4 +1,12 @@
-module GameState.Mutable where
+module GameState.Mutable (MPositions,
+                          MVelocities,
+                          MOrientations,
+                          MMeshIndexes,
+                          MColors,
+                          MGameState(..),
+                          thawGameState,
+                          freezeGameState
+                          ) where
 
 import GameState
 import qualified Data.Vector.Unboxed as U

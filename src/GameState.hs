@@ -1,4 +1,15 @@
-module GameState where
+module GameState (Position,
+                  Positions,
+                  Velocity,
+                  Velocities,
+                  Orientation,
+                  Orientations,
+                  MeshIndex,
+                  MeshIndexes,
+                  Color,
+                  Colors,
+                  GameState (..)
+                 ) where
 
 import qualified Data.Vector.Unboxed as U
 
