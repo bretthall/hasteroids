@@ -57,9 +57,9 @@ executable hasteroids
   -- other-extensions:    
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.7 && <4.8,
+  build-depends:       base >=4.7 && <4.9,
                        vector >=0.10 && <0.11,
-                       primitive >=0.5 && <0.6,
+                       primitive >=0.5 && <0.7,
                        OpenGL,
                        SDL
   
@@ -69,6 +69,7 @@ executable hasteroids
   -- Base language which the package is written in.
   default-language:    Haskell2010
 
+  -- Extra hoops to jump through to get SDL to work on OSX
   GHC-Options:         -no-hs-main -Wall
   c-sources:           src/c_main.c
   include-dirs:        /usr/local/include/SDL
