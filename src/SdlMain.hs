@@ -1,22 +1,30 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
-module SdlMain where
+{-# LANGUAGE OverloadedStrings #-}
+module Main where
 
-import Graphics.UI.SDL
+import Graphics.UI.SDL as SDL
+import Foreign.C.String
+import Foreign.Marshal.Alloc
+import Foreign.Storable
+    
+main :: IO ()
+main = do
+    initRes <- SDL.init SDL_INIT_EVERYTHING
+    putStrLn $ "Init res = " ++ (show initRes)
 
-foreign export ccall sdl_main :: IO ()
- 
-sdl_main :: IO ()
-sdl_main = withInit [InitEverything] $ do
+    title <- newCString "Test"
+    w <- createWindow title 0 0 500 500 0
 
-  setCaption "Foo says \"Hello!\"" []
-
-  screen <- setVideoMode screenWidth screenHeight screenBmp [SWSurface]
-
-  Graphics.UI.SDL.flip screen
-
-  delay 2000
-
-  where
-    screenWidth = 640
-    screenHeight = 480
-    screenBmp = 32
+    let mainLoop = do
+          event <- alloca $ \event -> do
+                     res <- pollEvent event
+                     case res of
+                       1 -> peek event >>= return.Just
+                       _ -> return Nothing
+          case event of
+            Just (QuitEvent _ _) -> print "quit" >> return ()
+            Just (KeyboardEvent _ _ _ _ _ _) -> print "key" >> return ()
+            _ -> mainLoop
+    mainLoop
+                    
+    destroyWindow w
+    quit
