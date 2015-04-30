@@ -6,7 +6,8 @@ import Foreign.Marshal.Alloc
 import Foreign.Storable
 import Graphics.Rendering.OpenGL
 import Graphics.UI.SDL as SDL
-    
+import Data.Time.Clock
+
 main :: IO ()
 main = do
     initRes <- SDL.init SDL_INIT_EVERYTHING
@@ -24,7 +25,8 @@ main = do
     loadIdentity
     ortho2D (-1.0) 1.0 (-1.0) 1.0
     matrixMode $= Modelview 0
-
+    start <- getCurrentTime
+    
     let mainLoop = do
           event <- alloca $ \event -> do
                      res <- pollEvent event
@@ -34,17 +36,23 @@ main = do
           case event of
             Just (QuitEvent _ _) -> print "quit" >> return ()
             Just (KeyboardEvent _ _ _ _ _ _) -> print "key" >> return ()
-            Nothing -> renderWindow win >> mainLoop -- no events pending => do rendering here
+            Nothing -> renderWindow start win >> mainLoop -- no events pending => do rendering here
             _ -> mainLoop
     mainLoop
                     
     destroyWindow win
     quit
 
-renderWindow :: Window -> IO ()
-renderWindow win = do
+angVel :: GLfloat
+angVel = 4.0
+
+renderWindow :: UTCTime -> Window -> IO ()
+renderWindow start win = do
+  curTime <- getCurrentTime
+  let diff = realToFrac $ diffUTCTime curTime start
   clear [ColorBuffer]
   loadIdentity
+  rotate (diff * angVel) $ Vector3 0.0 0.0 1.0
   color $ Color3 1.0 0.0 (0.0 :: GLfloat)
   renderPrimitive Lines $ mapM_ vertex2f [(-0.5, -0.5), (0.5, 0.5), (0.5, -0.5), (-0.5, 0.5) ]
   color $ Color3 0.0 1.0 (0.0 :: GLfloat)
