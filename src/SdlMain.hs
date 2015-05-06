@@ -16,7 +16,7 @@ main :: IO ()
 main = do
     initRes <- SDL.init SDL_INIT_EVERYTHING
     putStrLn $ "Init res = " ++ (show initRes)
-    title <- newCString "Test"
+    title <- newCString "Hasteroids"
     let (width, height) = (640, 640)
     win <- createWindow title 0 0 width height SDL.SDL_WINDOW_OPENGL
     glCreateContext win
@@ -26,7 +26,7 @@ main = do
     viewport $= (Position 0 0, Size (fromIntegral width) (fromIntegral height))
     matrixMode $= Projection
     loadIdentity
-    ortho2D (-1.0) 1.0 (-1.0) 1.0
+    ortho2D (-100.0) 100.0 (-100.0) 100.0
     matrixMode $= Modelview 0
     start <- getCurrentTime
     mainLoop win $ RS RotateNone 0.0 start                    
@@ -37,7 +37,7 @@ mainLoop :: Window -> RotateState -> IO ()
 mainLoop win state@(RS d a t) = do
   event <- checkForEvent
   case event of
-   Just (QuitEvent _ _) -> print "quit" >> return ()
+   Just (QuitEvent _ _) -> return ()
    Just (KeyboardEvent t _ _ _ _ k) -> handleKey t k state >>= mainLoop win
    Nothing -> do
      ct <- getCurrentTime
@@ -76,27 +76,29 @@ handleKeyUp key state@(RS d a t) | keysymKeycode key == SDLK_LEFT = updateState 
                         ct <- getCurrentTime
                         return $ RS RotateNone (updateAngle d a t ct) ct
                     | otherwise = return state
-        
+
+angVel :: GLfloat
+angVel = 100.0
+                                  
 updateAngle :: RotateDir -> GLfloat -> UTCTime -> UTCTime -> GLfloat
 updateAngle d a t1 t2 = case d of
                          RotateCCW -> a + diff*angVel
                          RotateCW -> a - diff*angVel
                          RotateNone -> a
   where
-    diff = realToFrac $ diffUTCTime t2 t1
-    
-angVel :: GLfloat
-angVel = 8.0
+    diff = realToFrac $ diffUTCTime t2 t1    
+
+shipScaleFactor :: GLfloat
+shipScaleFactor = 0.35
 
 renderWindow :: RotateState -> Window -> IO ()
 renderWindow (RS _ a _) win = do
   clear [ColorBuffer]
   loadIdentity
   rotate a $ Vector3 0.0 0.0 1.0
-  color $ Color3 1.0 0.0 (0.0 :: GLfloat)
-  renderPrimitive Lines $ mapM_ vertex2f [(-0.5, -0.5), (0.5, 0.5), (0.5, -0.5), (-0.5, 0.5) ]
   color $ Color3 0.0 1.0 (0.0 :: GLfloat)
-  renderPrimitive LineLoop $ mapM_ vertex2f [(-0.5, -0.5), (-0.5, 0.5), (0.5, 0.5), (0.5, -0.5) ]
+  scale shipScaleFactor shipScaleFactor 1.0
+  renderPrimitive LineLoop $ mapM_ vertex2f [(-5.0, -5.0), (0.0, 10.0), (5.0, -5.0), (0.0, 0.0) ]
   glSwapWindow win
 
 vertex2f :: (GLfloat, GLfloat) -> IO ()
