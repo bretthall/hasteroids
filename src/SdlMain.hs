@@ -8,7 +8,7 @@ import qualified Foreign.Marshal.Alloc as FMA
 import qualified Foreign.Storable as FS
 import qualified Graphics.Rendering.OpenGL as GL
 import Graphics.Rendering.OpenGL (($=))
-import qualified SDL
+import qualified SDL.Raw as SDL
 
 data RotateDir = RotateNone | RotateCW | RotateCCW deriving Eq
 data RotateState = RS RotateDir GL.GLfloat DTC.UTCTime

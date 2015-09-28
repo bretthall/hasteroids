@@ -6,7 +6,6 @@ resolver: nightly-2015-09-27
 # Local packages, usually specified by relative directory name
 packages:
 - '.'
-- SDL-0.6.5/
 
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps: []
