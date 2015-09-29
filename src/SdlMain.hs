@@ -3,23 +3,22 @@ module Main where
 
 import qualified Data.Time.Clock as DTC
 import Data.Word
-import qualified Foreign.C.String as FCS
-import qualified Foreign.Marshal.Alloc as FMA
-import qualified Foreign.Storable as FS
 import qualified Graphics.Rendering.OpenGL as GL
 import Graphics.Rendering.OpenGL (($=))
-import qualified SDL.Raw as SDL
-
+import qualified SDL
+import qualified Linear as L
+    
 data RotateDir = RotateNone | RotateCW | RotateCCW deriving Eq
 data RotateState = RS RotateDir GL.GLfloat DTC.UTCTime
   
 main :: IO ()
 main = do
-    initRes <- SDL.init SDL.SDL_INIT_EVERYTHING
-    putStrLn $ "Init res = " ++ (show initRes)
-    title <- FCS.newCString "Hasteroids"
+    SDL.initialize [SDL.InitVideo, SDL.InitEvents]
     let (width, height) = (640, 640)
-    win <- SDL.createWindow title 0 0 width height SDL.SDL_WINDOW_OPENGL
+    win <- SDL.createWindow "Hasteroids" $ 
+           SDL.defaultWindow {
+                    SDL.windowInitialSize = L.V2 width height,
+                    SDL.windowOpenGL = Just SDL.defaultOpenGL}
     SDL.glCreateContext win
     GL.clearColor $= GL.Color4 0 0 0 1
     GL.lineWidth $= 1
@@ -36,32 +35,24 @@ main = do
 
 mainLoop :: SDL.Window -> RotateState -> IO ()
 mainLoop win state@(RS d a t) = do
-  event <- checkForEvent
+  event <- SDL.pollEvent
   case event of
-   Just (SDL.QuitEvent _ _) -> return ()
-   Just (SDL.KeyboardEvent t _ _ _ _ k) -> handleKey t k state >>= mainLoop win
+   Just (SDL.Event _ SDL.QuitEvent) -> return ()
+   Just (SDL.Event _ (SDL.KeyboardEvent (SDL.KeyboardEventData _ t False k))) -> handleKey t k state >>= mainLoop win
    Nothing -> do
      ct <- DTC.getCurrentTime
      let state' = RS d (updateAngle d a t ct) ct
      renderWindow state' win
      mainLoop win state'
    _ -> mainLoop win state
-
-checkForEvent :: IO (Maybe SDL.Event)
-checkForEvent = FMA.alloca $ \event -> do
-  res <- SDL.pollEvent event
-  case res of
-   1 -> FS.peek event >>= return.Just
-   _ -> return Nothing
    
-handleKey :: Word32 -> SDL.Keysym -> RotateState -> IO RotateState
-handleKey t key state | t == SDL.SDL_KEYDOWN = handleKeyDown key state
-                      | t == SDL.SDL_KEYUP = handleKeyUp key state
-                      | otherwise = return state
+handleKey :: SDL.InputMotion -> SDL.Keysym -> RotateState -> IO RotateState
+handleKey SDL.Pressed key state = handleKeyDown key state
+handleKey SDL.Released key state = handleKeyUp key state
 
 handleKeyDown :: SDL.Keysym -> RotateState -> IO RotateState
-handleKeyDown key state@(RS d a t) | SDL.keysymKeycode key == SDL.SDLK_LEFT = updateState RotateCCW
-                                   | SDL.keysymKeycode key == SDL.SDLK_RIGHT = updateState RotateCW
+handleKeyDown key state@(RS d a t) | SDL.keysymKeycode key == SDL.KeycodeLeft = updateState RotateCCW
+                                   | SDL.keysymKeycode key == SDL.KeycodeRight = updateState RotateCW
                                    | otherwise = return state
   where
     updateState dir = do
@@ -69,8 +60,8 @@ handleKeyDown key state@(RS d a t) | SDL.keysymKeycode key == SDL.SDLK_LEFT = up
       return $ RS dir (updateAngle d a t ct) ct
 
 handleKeyUp :: SDL.Keysym -> RotateState -> IO RotateState
-handleKeyUp key state@(RS d a t) | SDL.keysymKeycode key == SDL.SDLK_LEFT = updateState RotateCCW
-                                 | SDL.keysymKeycode key == SDL.SDLK_RIGHT = updateState RotateCW
+handleKeyUp key state@(RS d a t) | SDL.keysymKeycode key == SDL.KeycodeLeft = updateState RotateCCW
+                                 | SDL.keysymKeycode key == SDL.KeycodeRight = updateState RotateCW
                                  | otherwise = return state
   where
     updateState dir | dir == d = do

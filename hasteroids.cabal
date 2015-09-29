@@ -62,7 +62,8 @@ executable hasteroids
                        primitive >=0.5 && <0.7,
                        OpenGL >= 2.12,
                        sdl2 >= 2.0,
-                       time >= 1.5
+                       time >= 1.5,
+                       linear >= 1.19
                          
   -- Directories containing source files.
   hs-source-dirs:      src
