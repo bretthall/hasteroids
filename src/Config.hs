@@ -13,6 +13,7 @@ data Config = Config {
   windowWidth :: Int,
   windowHeight :: Int,
   playerAngularVelocity :: GL.GLfloat,
+  shipScale :: GL.GLfloat,
   drawSquare :: Bool
   } deriving Show
 
@@ -22,8 +23,9 @@ readConfig = do
   wd <- Cfgr.lookupDefault 640 cfg "window.width" 
   ht <- Cfgr.lookupDefault 480 cfg "window.height" 
   pav <- Cfgr.lookupDefault 100 cfg "player.angular-velocity"
+  ss <- Cfgr.lookupDefault 0.35 cfg "player.ship-scale"
   ds <- Cfgr.lookupDefault False cfg "debug.draw-square"
-  return (Config wd ht pav ds)
+  return (Config wd ht pav ss ds)
     where
       handleMissingCfgr :: CfgrTypes.ConfigError -> IO a
       handleMissingCfgr err = do
